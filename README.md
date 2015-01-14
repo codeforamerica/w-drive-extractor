@@ -50,7 +50,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
         'files/one sheet contract list.xlsx',
         dtypes=[
             unicode, unicode, unicode, int, unicode,
-            unicode, datetime, int, unicode, unicode,
+            unicode, datetime.datetime, int, unicode, unicode,
             unicode, unicode, unicode, unicode, unicode,
             unicode, unicode, unicode, unicode
         ]
@@ -86,4 +86,4 @@ Below is an example of extracting data from Excel and loading it into a local [p
         }]
     )
 
-    loader.load(data['Sheet1'], True)
+    loader.load(data, True)

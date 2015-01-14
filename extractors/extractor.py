@@ -28,10 +28,10 @@ class Extractor:
         '''
         Each Extractor implementation must implement an
         extract method. The method should return a
-        dictionary formatted as follows:
-        {
-            sheet name: [{field: value, ...}],
+        list of dictionaries formatted as follows:
+        [
+            {field: value, ...},
             ...
-        }
+        ]
         '''
         raise NotImplementedError

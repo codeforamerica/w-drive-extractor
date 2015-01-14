@@ -58,7 +58,7 @@ class ExcelExtractor(Extractor):
             ...
         }
         '''
-        output = {}
+        output = []
 
         workbook = xlrd.open_workbook(self.target)
 
@@ -71,10 +71,6 @@ class ExcelExtractor(Extractor):
                 # immediately continue if we have no rows
                 continue
 
-            # since we definitely have data, we can add
-            # the sheet name as a key to the output
-            output[sheet] = []
-
             if not self.header:
                 # if we don't have a header, assume that
                 # the first row will be the header
@@ -86,7 +82,7 @@ class ExcelExtractor(Extractor):
                 current_header = self.header
 
             while current_row < current_sheet.nrows:
-                output.get(sheet).append(
+                output.append(
                     self.convert_to_python_types(current_sheet.row(current_row), current_header, workbook.datemode)
                 )
 
