@@ -41,41 +41,49 @@ The Loader base class is an interface for implementing data loading into new sou
 
 Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/):
 
-```
-from extractors.excel import ExcelExtractor
-from loaders.postgres import PostgresLoader
+    import datetime
 
-one_sheet = ExcelExtractor('files/one sheet contract list.xlsx')
-data = one_sheet.extract()
+    from extractors.excel import ExcelExtractor
+    from loaders.postgres import PostgresLoader
 
-loader = PostgresLoader(
-    {'database': 'w_drive', 'user': 'bensmithgall', 'host': 'localhost'},
-    [{
-        'table_name': 'denorm_test',
-        'pkey': None,
-        'columns': (
-            ('bus_type', 'VARCHAR(255)'),
-            ('description', 'TEXT'),
-            ('notes', 'TEXT'),
-            ('company', 'VARCHAR(255)'),
-            ('phone_number', 'VARCHAR(255)'),
-            ('contract_number', 'VARCHAR(255)'),
-            ('email', 'VARCHAR(255)'),
-            ('county', 'VARCHAR(255)'),
-            ('type_of_contract', 'VARCHAR(255)'),
-            ('fax_number', 'VARCHAR(255)'),
-            ('pa', 'VARCHAR(255)'),
-            ('expiration', 'TEXT'),
-            ('address_2', 'VARCHAR(255)'),
-            ('spec_number', 'VARCHAR(255)'),
-            ('address_1', 'VARCHAR(255)'),
-            ('contact_name', 'VARCHAR(255)'),
-            ('fin', 'VARCHAR(255)'),
-            ('controller_number', 'TEXT'),
-            ('commcode', 'TEXT')
-        )
-    }]
-)
+    one_sheet = ExcelExtractor(
+        'files/one sheet contract list.xlsx',
+        dtypes=[
+            unicode, unicode, unicode, int, unicode,
+            unicode, datetime, int, unicode, unicode,
+            unicode, unicode, unicode, unicode, unicode,
+            unicode, unicode, unicode, unicode
+        ]
+    )
+    data = one_sheet.extract()
 
-loader.load(data['Sheet1'], True)
-```
+    loader = PostgresLoader(
+        {'database': 'w_drive', 'user': 'bensmithgall', 'host': 'localhost'},
+        [{
+            'table_name': 'denorm_test',
+            'pkey': None,
+            'columns': (
+                ('bus_type', 'VARCHAR(255)'),
+                ('description', 'TEXT'),
+                ('notes', 'TEXT'),
+                ('company', 'VARCHAR(255)'),
+                ('phone_number', 'VARCHAR(255)'),
+                ('contract_number', 'VARCHAR(255)'),
+                ('email', 'VARCHAR(255)'),
+                ('county', 'VARCHAR(255)'),
+                ('type_of_contract', 'VARCHAR(255)'),
+                ('fax_number', 'VARCHAR(255)'),
+                ('pa', 'VARCHAR(255)'),
+                ('expiration', 'TIMESTAMP'),
+                ('address_2', 'VARCHAR(255)'),
+                ('spec_number', 'VARCHAR(255)'),
+                ('address_1', 'VARCHAR(255)'),
+                ('contact_name', 'VARCHAR(255)'),
+                ('fin', 'VARCHAR(255)'),
+                ('controller_number', 'INTEGER'),
+                ('commcode', 'INTEGER')
+            )
+        }]
+    )
+
+    loader.load(data['Sheet1'], True)

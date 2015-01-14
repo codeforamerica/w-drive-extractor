@@ -8,7 +8,12 @@ class ExcelExtractor(Extractor):
     def convert_to_python_types(self, row, header, excel_date):
         '''
         Attempts to reconcile excel data types with native
-        python types.
+        python types. If the ExcelExtractor is initialized with
+        a list of dtypes, attempt to coerce to the given types.
+
+        If the coercion fails, drop the cell value. This is certainly
+        not the optimal strategy, but the current design decision
+        favors flexibilty over completeness.
         '''
 
         output = []
@@ -23,17 +28,27 @@ class ExcelExtractor(Extractor):
             6: unicode # blank (when formatting_info=True)
         }
 
-        for cell in row:
+        for idx, cell in enumerate(row):
             converted_val = ctype_conversions[cell.ctype](cell.value)
             if cell.ctype == 3:
                 converted_val = datetime.datetime(*xlrd.xldate_as_tuple(cell.value, excel_date))
             elif cell.ctype == 4:
                 converted_val = bool(cell.value)
 
+            if type(converted_val) != self.dtypes[idx]:
+                try:
+                    # for native types, try converting
+                    converted_val = self.dtypes[idx](converted_val)
+                except TypeError:
+                    # e.g. you are attempting to load a complex type
+                    converted_val = None
+                except ValueError:
+                    # e.g. you try to coerce an empty string to an int
+                    converted_val = None
+
             output.append(converted_val)
 
         return dict(zip(header, output))
-
 
     def extract(self):
         '''
