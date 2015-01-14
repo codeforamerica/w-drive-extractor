@@ -27,7 +27,7 @@ The Loader base class is an interface for implementing data loading into new sou
 
 ##### Current Implemenations:
 
-+ Postgres
++ Postgres [with relationships!]
 
 ##### TODO Implementations:
 
@@ -35,11 +35,11 @@ The Loader base class is an interface for implementing data loading into new sou
 
 ##### TODO Features:
 
-+ Allow schema input to specify relationships between tables
++ Formal foreign key relationshps between table relations in Postgres
 
 ### Sample Usage
 
-Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/):
+Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/) with defined relationships. NOTE: This implementation is still fragile and likely to be dependent on the fact that to_relations is the last table in the list below.
 
     import datetime
 
@@ -60,28 +60,46 @@ Below is an example of extracting data from Excel and loading it into a local [p
     loader = PostgresLoader(
         {'database': 'w_drive', 'user': 'bensmithgall', 'host': 'localhost'},
         [{
-            'table_name': 'denorm_test',
+            'table_name': 'contracts',
+            'to_relations': [],
+            'from_relations': ['company'],
             'pkey': None,
             'columns': (
-                ('bus_type', 'VARCHAR(255)'),
                 ('description', 'TEXT'),
                 ('notes', 'TEXT'),
-                ('company', 'VARCHAR(255)'),
-                ('phone_number', 'VARCHAR(255)'),
                 ('contract_number', 'VARCHAR(255)'),
-                ('email', 'VARCHAR(255)'),
                 ('county', 'VARCHAR(255)'),
                 ('type_of_contract', 'VARCHAR(255)'),
-                ('fax_number', 'VARCHAR(255)'),
                 ('pa', 'VARCHAR(255)'),
                 ('expiration', 'TIMESTAMP'),
-                ('address_2', 'VARCHAR(255)'),
                 ('spec_number', 'VARCHAR(255)'),
-                ('address_1', 'VARCHAR(255)'),
                 ('contact_name', 'VARCHAR(255)'),
-                ('fin', 'VARCHAR(255)'),
                 ('controller_number', 'INTEGER'),
                 ('commcode', 'INTEGER')
+            )
+        },
+        {
+            'table_name': 'company_contact',
+            'to_relations': [],
+            'from_relations': ['company'],
+            'pkey': None,
+            'columns': (
+                ('address_1', 'VARCHAR(255)'),
+                ('address_2', 'VARCHAR(255)'),
+                ('phone_number', 'VARCHAR(255)'),
+                ('email', 'VARCHAR(255)'),
+                ('fax_number', 'VARCHAR(255)'),
+                ('fin', 'VARCHAR(255)'),
+            )
+        },
+        {
+            'table_name': 'company',
+            'to_relations': ['company_contact', 'contracts'],
+            'from_relations': [],
+            'pkey': None,
+            'columns': (
+                ('company', 'VARCHAR(255)'),
+                ('bus_type', 'VARCHAR(255)'),
             )
         }]
     )

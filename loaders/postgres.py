@@ -81,6 +81,8 @@ class PostgresLoader(Loader):
             'table_name': '',
             'pkey': '',
             'index': '',
+            'to_relations': ['table_name', ...],
+            'from_relations': ['table_name', ...],
             'columns': ( ('col_name', col_type), ... ),
             }, ...
         ]
@@ -100,23 +102,22 @@ class PostgresLoader(Loader):
                 col_names = zip(*table['columns'])[0]
 
                 # initialize the new row to add to the final loaded data
-                new_row = {}
+                cur_max_id = max([int(i[table['table_name'] + '_id']) for i in output[ix]]) if len(output[ix]) > 0 else 0
+                new_row = {table['table_name'] + '_id': str(cur_max_id + 1)}
 
                 for cell in line.iteritems():
 
                     if cell[0] in col_names:
-
-                        # if we are adding an id column, make sure we add it
-                        # to the beginning of each row
-                        if add_pkey and len(new_row) == 0:
-                            cur_max_id = max([int(i[table['table_name'] + '_id']) for i in output[ix]]) if len(output[ix]) > 0 else 0
-                            new_row = {table['table_name'] + '_id': str(cur_max_id + 1)}
-
                         # extend the new row with the value of the cell
                         new_row[cell[0]] = str(self.null_replace(cell[1]))
-
                     else:
                         continue
+
+                # once we have added all of the data fields, add the relationships
+                for relationship in table['to_relations']:
+                    # find the index of the matching relationship table
+                    rel_index = next(index for (index, d) in enumerate(self.schema) if d['table_name'] == relationship)
+                    output[rel_index][cur_max_id][self.schema[ix]['table_name'] + '_id'] = str(cur_max_id + 1)
 
                 output[ix].extend([new_row])
 
@@ -159,9 +160,14 @@ class PostgresLoader(Loader):
             tables = self.transform_to_schema(data, add_pkey)
 
             for ix, table in enumerate(self.schema):
+                table['columns'] = ( (table['table_name'] + '_id', 'INTEGER'), ) + table['columns']
+
                 if add_pkey:
                     table['pkey'] = table['table_name'] + '_id'
-                    table['columns'] = ( (table['table_name'] + '_id', 'INTEGER'), ) + table['columns']
+
+                if table['from_relations']:
+                    for relationship in table['from_relations']:
+                        table['columns'] += ( ( relationship + '_id', 'INTEGER' ), )
 
                 drop_table = self.generate_drop_table_query(table)
                 cursor.execute(drop_table)
@@ -180,6 +186,7 @@ class PostgresLoader(Loader):
             if conn:
                 conn.rollback()
             raise e
+
         finally:
             if conn:
                 conn.close()

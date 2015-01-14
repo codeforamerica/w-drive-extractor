@@ -52,11 +52,11 @@ class ExcelExtractor(Extractor):
 
     def extract(self):
         '''
-        Returns a dictionary structured as follows:
-        { 
-            sheet name: [{field: value, ...}],
+        Returns a list of dictionaries structured as follows:
+        [ 
+            {field: value, ...},
             ...
-        }
+        ]
         '''
         output = []
 
