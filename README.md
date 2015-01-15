@@ -73,7 +73,6 @@ Below is an example of extracting data from Excel and loading it into a local [p
                 ('pa', 'VARCHAR(255)'),
                 ('expiration', 'TIMESTAMP'),
                 ('spec_number', 'VARCHAR(255)'),
-                ('contact_name', 'VARCHAR(255)'),
                 ('controller_number', 'INTEGER'),
                 ('commcode', 'INTEGER')
             )
@@ -84,6 +83,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
             'from_relations': ['company'],
             'pkey': None,
             'columns': (
+                ('contact_name', 'VARCHAR(255)'),
                 ('address_1', 'VARCHAR(255)'),
                 ('address_2', 'VARCHAR(255)'),
                 ('phone_number', 'VARCHAR(255)'),
