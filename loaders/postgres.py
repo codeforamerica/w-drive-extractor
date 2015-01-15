@@ -60,6 +60,24 @@ class PostgresLoader(Loader):
 
             return create_query
 
+    def generate_foreign_key_query(self, table, i=0):
+        '''
+        Generates alter table statements that add formal
+        foreign key relationships. Takes in a schema and
+        an optional index (defaults to 0) of the positon
+        of the relationship in the schema
+
+        NOTE: This must be called AFTER data is already
+        loaded. Otherwise, a psycopg2 error will be thrown.
+        '''
+        return '''
+        ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}
+        '''.format(
+            table=table['table_name'],
+            id=table['from_relations'][i] + '_id',
+            relationship=table['from_relations'][i]
+        )
+
     def null_replace(self, field):
         '''
         Replaces empty string, None with 'NULL' for Postgres loading
@@ -176,11 +194,14 @@ class PostgresLoader(Loader):
                 cursor.execute(create_table)
                 tmp_file, column_names = self.generate_data_tempfile(tables[ix])
 
-                tmp_file.seek(0)
-
                 cursor.copy_from(tmp_file, table['table_name'], null='NULL', sep='\t', columns=column_names)
 
-                conn.commit()
+            for table in self.schema:
+                for ix, relationship in enumerate(table['from_relations']):
+                    fk_query = self.generate_foreign_key_query(table, ix)
+                    cursor.execute(fk_query)
+
+            conn.commit()
 
         except psycopg2.Error, e:
             if conn:
