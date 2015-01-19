@@ -60,7 +60,7 @@ class PostgresLoader(Loader):
 
             return create_query
 
-    def generate_foreign_key_query(table, i=0):
+    def generate_foreign_key_query(self, table, i=0):
         '''
         Generates alter table statements that add formal
         foreign key relationships. Takes in a schema and
