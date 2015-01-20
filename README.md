@@ -32,10 +32,12 @@ The Loader base class is an interface for implementing data loading into new sou
 ##### TODO Implementations:
 
 + Simple key/value cache (Memcached/Redis)
++ Other relational data stores
 
 ##### TODO Features:
 
-+ Formal foreign key relationshps between table relations in Postgres
++ Simple deduplication
++ Add tests
 
 ### Sample Usage
 
@@ -63,6 +65,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
             'table_name': 'contracts',
             'to_relations': [],
             'from_relations': ['company'],
+            'one_to_many': False,
             'pkey': None,
             'columns': (
                 ('description', 'TEXT'),
@@ -81,6 +84,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
             'table_name': 'company_contact',
             'to_relations': [],
             'from_relations': ['company'],
+            'one_to_many': False,
             'pkey': None,
             'columns': (
                 ('contact_name', 'VARCHAR(255)'),
@@ -96,6 +100,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
             'table_name': 'company',
             'to_relations': ['company_contact', 'contracts'],
             'from_relations': [],
+            'one_to_many': True,
             'pkey': None,
             'columns': (
                 ('company', 'VARCHAR(255)'),

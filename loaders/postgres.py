@@ -32,7 +32,7 @@ class PostgresLoader(Loader):
 
     def generate_drop_table_query(self, table_schema):
         drop_query = '''
-        DROP TABLE IF EXISTS {table}
+        DROP TABLE IF EXISTS {table} CASCADE
         '''.format(
             table=table_schema['table_name']
         )
@@ -109,10 +109,14 @@ class PostgresLoader(Loader):
         the keys being the column names and the values being the
         values. The transformed data will return a list of
         dictionaries where each dictionary is a table to write
-        to the final data store
+        to the final data store.
+
+        Additionally, this method holds a dictionary of like items
+        and their ids to allow for very simple deduplication.
         '''
         # start by generating the output list of lists
-        output = [[] for i in range(len(self.schema))]
+        output = [list() for i in range(len(self.schema))]
+        holder = [defaultdict(list) for i in range(len(self.schema))]
 
         for line in data:
             for ix, table in enumerate(self.schema):
@@ -121,7 +125,7 @@ class PostgresLoader(Loader):
 
                 # initialize the new row to add to the final loaded data
                 cur_max_id = max([int(i[table['table_name'] + '_id']) for i in output[ix]]) if len(output[ix]) > 0 else 0
-                new_row = {table['table_name'] + '_id': str(cur_max_id + 1)}
+                new_row = dict()
 
                 for cell in line.iteritems():
 
@@ -131,6 +135,9 @@ class PostgresLoader(Loader):
                     else:
                         continue
 
+                holder[ix][tuple(new_row.items())].append(cur_max_id)
+                new_row[table['table_name'] + '_id'] = str(cur_max_id + 1)
+
                 # once we have added all of the data fields, add the relationships
                 for relationship in table['to_relations']:
                     # find the index of the matching relationship table
@@ -138,6 +145,26 @@ class PostgresLoader(Loader):
                     output[rel_index][cur_max_id][self.schema[ix]['table_name'] + '_id'] = str(cur_max_id + 1)
 
                 output[ix].extend([new_row])
+
+        # Now we have our properly formatted data, we need
+        # to go back through and remove the duplicates.
+        # With the data structures that we have now, we can
+        # traverse through the holder dictionary and replace
+        # the relevant items in our output. We then delete the
+        # relevant indices from the output list from back to front
+        # and end up with a set of exact dupes removed
+
+        all_indices = [list() for i in range(len(self.schema))]
+
+        for ix, table in enumerate(holder):
+            for vals, indices in table.iteritems():
+                if len(indices) > 1:
+                    min_idx = min(indices)
+                    for index in indices:
+                        if index != min_idx:
+                            all_indices[ix].append(index)
+                            import pdb; pdb.set_trace()
+
 
         return output
 
