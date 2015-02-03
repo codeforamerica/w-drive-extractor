@@ -1,6 +1,6 @@
-## W-Drive Extractor
+## W-Drive Extractor (wextractor)
 
-The W-Drive Extractor, named after the home of the shared list of contracts, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
+The W-Drive Extractor (or the wextractor), named after the home of the shared list of contracts in the City of Pittsburgh, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
 
 Current status: in development
 
@@ -37,14 +37,22 @@ The Loader base class is an interface for implementing data loading into new sou
 
 + Formal foreign key relationshps between table relations in Postgres
 
+### Tests
+
+Tests are located in the `test` directory. To run the tests, run
+
+    PYTHONPATH=. nosetests test/
+
+from inside the root directory.
+
 ### Sample Usage
 
 Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/) with defined relationships. NOTE: This implementation is still fragile and likely to be dependent on the fact that to_relations is the last table in the list below.
 
     import datetime
 
-    from extractors.excel import ExcelExtractor
-    from loaders.postgres import PostgresLoader
+    from wextractor.extractors.excel import ExcelExtractor
+    from wextractor.loaders.postgres import PostgresLoader
 
     one_sheet = ExcelExtractor(
         'files/one sheet contract list.xlsx',
