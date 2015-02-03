@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from collections import defaultdict
 
-from loaders.loader import Loader
+from wextractor.loaders.loader import Loader
 
 class PostgresLoader(Loader):
     def connect(self):
@@ -35,9 +35,7 @@ class PostgresLoader(Loader):
         return conn
 
     def generate_drop_table_query(self, table_schema):
-        drop_query = '''
-        DROP TABLE IF EXISTS {table} CASCADE
-        '''.format(
+        drop_query = '''DROP TABLE IF EXISTS {table}'''.format(
             table=table_schema['table_name']
         )
 
@@ -56,9 +54,7 @@ class PostgresLoader(Loader):
                     '{name} {dtype}'.format(name=name, dtype=dtype) for name, dtype in table_schema['columns']
                 )
 
-            create_query = '''
-            CREATE TABLE IF NOT EXISTS {table} ({coldefs}, PRIMARY KEY({pkey}))
-            '''.format(
+            create_query = '''CREATE TABLE IF NOT EXISTS {table} ({coldefs}, PRIMARY KEY({pkey}))'''.format(
                 table=table_schema['table_name'],
                 coldefs=coldefs,
                 pkey=table_schema['pkey']
@@ -76,9 +72,7 @@ class PostgresLoader(Loader):
         NOTE: This must be called AFTER data is already
         loaded. Otherwise, a psycopg2 error will be thrown.
         '''
-        return '''
-        ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}
-        '''.format(
+        return '''ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}'''.format(
             table=table['table_name'],
             id=table['from_relations'][i] + '_id',
             relationship=table['from_relations'][i]
