@@ -3,6 +3,9 @@
 import os
 import tempfile
 import psycopg2
+import simplejson as json
+from hashlib import md5
+
 from collections import defaultdict
 
 from loaders.loader import Loader
@@ -90,6 +93,27 @@ class PostgresLoader(Loader):
 
         return field
 
+    def hash_row(self, row):
+        '''
+        Return an md5 hash of a row's contents (minus its index). This hash
+        will turn into the table's new primary key.
+        '''
+        return md5(json.dumps(row, sort_keys=True)).hexdigest()
+
+    def simple_dedupe(self, table):
+        '''
+        Takes in a table that has been transformed by the
+        transform_to_schema method but not been deduplicated.
+        This method simply attempts to determine if the row
+        is an exact replica (minus fkeys). If it is, it checks to
+        make sure the fkeys are the same and handles the event that
+        the relationships are to different places and thus should
+        be different rows (by modifying the primary key). Returns
+        a deduplicated list.
+        '''
+        checker, output = set(), list()
+        pass
+
     def transform_to_schema(self, data, add_pkey):
         '''
         Schema for postgres must take the following form:
@@ -118,13 +142,15 @@ class PostgresLoader(Loader):
         output = [list() for i in range(len(self.schema))]
         holder = [defaultdict(list) for i in range(len(self.schema))]
 
-        for line in data:
-            for ix, table in enumerate(self.schema):
+        # initialize a dictionary to hold potential duplicates
+        deduper = {}
+
+        for ix, line in enumerate(data):
+            for table_idx, table in enumerate(self.schema):
 
                 col_names = zip(*table['columns'])[0]
 
                 # initialize the new row to add to the final loaded data
-                cur_max_id = max([int(i[table['table_name'] + '_id']) for i in output[ix]]) if len(output[ix]) > 0 else 0
                 new_row = dict()
 
                 for cell in line.iteritems():
@@ -135,38 +161,24 @@ class PostgresLoader(Loader):
                     else:
                         continue
 
-                holder[ix][tuple(new_row.items())].append(cur_max_id)
-                new_row[table['table_name'] + '_id'] = str(cur_max_id + 1)
+                row_id = self.hash_row(new_row)
+                new_row[table['table_name'] + '_id'] = row_id
 
                 # once we have added all of the data fields, add the relationships
                 for relationship in table['to_relations']:
                     # find the index of the matching relationship table
                     rel_index = next(index for (index, d) in enumerate(self.schema) if d['table_name'] == relationship)
-                    output[rel_index][cur_max_id][self.schema[ix]['table_name'] + '_id'] = str(cur_max_id + 1)
+                    output[rel_index][ix][self.schema[table_idx]['table_name'] + '_id'] = row_id
 
-                output[ix].extend([new_row])
+                output[table_idx].extend([new_row])
 
-        # Now we have our properly formatted data, we need
-        # to go back through and remove the duplicates.
-        # With the data structures that we have now, we can
-        # traverse through the holder dictionary and replace
-        # the relevant items in our output. We then delete the
-        # relevant indices from the output list from back to front
-        # and end up with a set of exact dupes removed
+        final_output = []
+        for table in output:
+            final_output.append(
+                [dict(item) for item in set([tuple(row.items()) for row in table])]
+            )
 
-        all_indices = [list() for i in range(len(self.schema))]
-
-        for ix, table in enumerate(holder):
-            for vals, indices in table.iteritems():
-                if len(indices) > 1:
-                    min_idx = min(indices)
-                    for index in indices:
-                        if index != min_idx:
-                            all_indices[ix].append(index)
-                            import pdb; pdb.set_trace()
-
-
-        return output
+        return final_output
 
     def generate_data_tempfile(self, data):
         '''
@@ -205,14 +217,14 @@ class PostgresLoader(Loader):
             tables = self.transform_to_schema(data, add_pkey)
 
             for ix, table in enumerate(self.schema):
-                table['columns'] = ( (table['table_name'] + '_id', 'INTEGER'), ) + table['columns']
+                table['columns'] = ( (table['table_name'] + '_id', 'UUID'), ) + table['columns']
 
                 if add_pkey:
                     table['pkey'] = table['table_name'] + '_id'
 
                 if table['from_relations']:
                     for relationship in table['from_relations']:
-                        table['columns'] += ( ( relationship + '_id', 'INTEGER' ), )
+                        table['columns'] += ( ( relationship + '_id', 'UUID' ), )
 
                 drop_table = self.generate_drop_table_query(table)
                 cursor.execute(drop_table)
