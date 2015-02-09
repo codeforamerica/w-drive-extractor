@@ -5,6 +5,7 @@ import tempfile
 import psycopg2
 import simplejson as json
 from hashlib import md5
+from copy import deepcopy
 
 from collections import defaultdict
 
@@ -100,7 +101,7 @@ class PostgresLoader(Loader):
         '''
         return md5(json.dumps(row, sort_keys=True)).hexdigest()
 
-    def simple_dedupe(self, table):
+    def simple_dedupe(self, idx, table):
         '''
         Takes in a table that has been transformed by the
         transform_to_schema method but not been deduplicated.
@@ -111,8 +112,74 @@ class PostgresLoader(Loader):
         be different rows (by modifying the primary key). Returns
         a deduplicated list.
         '''
-        checker, output = set(), list()
-        pass
+        checker, output, pkey, fkey = {}, [], {}, {}
+
+        pkey_name = self.schema[idx]['table_name'] + '_id'
+        fkeys_name = [i + '_id' for i in self.schema[idx]['from_relations']]
+
+        for row in table:
+            # store the value of the primary key
+            pkey[pkey_name] = row.pop(pkey_name, None)
+            for key in fkeys_name:
+                # store the values of the primary key
+                fkey[key] = row.pop(key, None)
+
+            row_as_tuple = tuple(row.items())
+
+            # Use try/except because it's faster than checking if
+            # the key is in the dictionary keys
+            try:
+                row_with_fkey = dict(row.items() + fkey.items())
+
+                checker[row_as_tuple]['pkey'].add(
+                    (pkey_name, self.hash_row(row_with_fkey))
+                )
+
+                checker[row_as_tuple]['fkey'].add(tuple(fkey.items()))
+
+            except KeyError:
+                # make a deep copy because calling .pop() will update
+                # every single one of these otherwise
+                fkey_copy = deepcopy(fkey)
+                # create a tuple of tuples for proper extraction later
+                pkey_tuple = ((pkey_name, self.hash_row(row)),)
+                checker[row_as_tuple] = {
+                    'pkey': set(pkey_tuple),
+                    'fkey': set(tuple(fkey_copy.items()))
+                }
+
+        # We should now have deduplicated everything, so we just
+        # reshape the checker dictionary into the list of dict format
+        # that the remainder should expect
+        for checker_row, table_keys in checker.items():
+
+            if len(table_keys['fkey']) == 0 or len(fkeys_name) == 0:
+                final_output = dict(checker_row)
+                final_output.update(dict(table_keys['pkey']))
+
+            elif len(table_keys['pkey']) == 1 and len(table_keys['fkey']) == 1:
+                final_output = dict(checker_row)
+                final_output.update(dict(table_keys['pkey']))
+                final_output.update(dict(table_keys['fkey']))
+
+            elif len(table_keys['pkey']) == len(table_keys['fkey']):
+                for fkey in table_keys['fkey']:
+                    new_pkey = self.hash_row(checker_row + fkey)
+
+                    final_output = dict(checker_row)
+                    final_output.update({pkey_name: new_pkey})
+                    try:
+                        final_output.update(dict((fkey,)))
+                    except:
+                        final_output.update(dict(fkey))
+
+            else:
+                # TODO: Implement something to handle this
+                raise Exception('pkey/fkey mismatch.')
+
+            output.append(final_output)
+
+        return output
 
     def transform_to_schema(self, data, add_pkey):
         '''
@@ -173,10 +240,8 @@ class PostgresLoader(Loader):
                 output[table_idx].extend([new_row])
 
         final_output = []
-        for table in output:
-            final_output.append(
-                [dict(item) for item in set([tuple(row.items()) for row in table])]
-            )
+        for table_ix, table in enumerate(output):
+            final_output.append(self.simple_dedupe(table_ix, table))
 
         return final_output
 
