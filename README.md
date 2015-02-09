@@ -25,9 +25,9 @@ The Extractor base class is an interface for implementing data extraction from d
 
 The Loader base class is an interface for implementing data loading into new sources. It requires connection parameters (a python dictionary of connection params) and optional schema. The goal is for a single input source (spreadsheet, denormalized table, etc.) to be split into many tables.
 
-##### Current Implemenations:
+##### Current Implementations:
 
-+ Postgres [with relationships!]
++ Postgres [with relationships and simple deduplication!]
 
 ##### TODO Implementations:
 
@@ -36,7 +36,6 @@ The Loader base class is an interface for implementing data loading into new sou
 
 ##### TODO Features:
 
-+ Simple deduplication
 + Add tests
 
 ### Sample Usage
