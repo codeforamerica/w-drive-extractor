@@ -50,7 +50,9 @@ class PostgresLoader(Loader):
         if len(table_schema['columns'][0]) == 1:
             raise Exception('Column Types are not specified')
         elif len(table_schema['columns'][0]) == 2:
-            coldefs = ','.join(
+            coldefs = 'row_id SERIAL,'
+
+            coldefs += ','.join(
                     '{name} {dtype}'.format(name=name, dtype=dtype) for name, dtype in table_schema['columns']
                 )
 
@@ -262,12 +264,13 @@ class PostgresLoader(Loader):
             if n % 10000 == 0:
                 print 'Wrote {n} lines'.format(n=n)
 
-            rowstr = '\t'.join([i[1] for i in row]) + '\n'
+            rowstr = '\t'.join([str(n)] + [i[1] for i in row]) + '\n'
+
             tmp_file.write(rowstr)
 
         tmp_file.seek(0)
 
-        return tmp_file, sorted(data[0].keys())
+        return tmp_file, ['row_id'] + sorted(data[0].keys())
 
     def load(self, data, add_pkey):
         conn = None

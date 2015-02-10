@@ -61,7 +61,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
     loader = PostgresLoader(
         {'database': 'w_drive', 'user': 'bensmithgall', 'host': 'localhost'},
         [{
-            'table_name': 'contracts',
+            'table_name': 'contract',
             'to_relations': [],
             'from_relations': ['company'],
             'pkey': None,
@@ -95,7 +95,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
         },
         {
             'table_name': 'company',
-            'to_relations': ['company_contact', 'contracts'],
+            'to_relations': ['company_contact', 'contract'],
             'from_relations': [],
             'pkey': None,
             'columns': (
