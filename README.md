@@ -25,17 +25,18 @@ The Extractor base class is an interface for implementing data extraction from d
 
 The Loader base class is an interface for implementing data loading into new sources. It requires connection parameters (a python dictionary of connection params) and optional schema. The goal is for a single input source (spreadsheet, denormalized table, etc.) to be split into many tables.
 
-##### Current Implemenations:
+##### Current Implementations:
 
-+ Postgres [with relationships!]
++ Postgres [with relationships and simple deduplication!]
 
 ##### TODO Implementations:
 
 + Simple key/value cache (Memcached/Redis)
++ Other relational data stores
 
 ##### TODO Features:
 
-+ Formal foreign key relationshps between table relations in Postgres
++ Add tests
 
 ### Sample Usage
 
@@ -60,7 +61,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
     loader = PostgresLoader(
         {'database': 'w_drive', 'user': 'bensmithgall', 'host': 'localhost'},
         [{
-            'table_name': 'contracts',
+            'table_name': 'contract',
             'to_relations': [],
             'from_relations': ['company'],
             'pkey': None,
@@ -94,7 +95,7 @@ Below is an example of extracting data from Excel and loading it into a local [p
         },
         {
             'table_name': 'company',
-            'to_relations': ['company_contact', 'contracts'],
+            'to_relations': ['company_contact', 'contract'],
             'from_relations': [],
             'pkey': None,
             'columns': (
