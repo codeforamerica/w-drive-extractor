@@ -12,6 +12,12 @@ class Extractor:
         self.header = header
         self.dtypes = dtypes
 
+        # if we have a header and dtypes, make sure they are the
+        # same length
+        if self.header and self.dtypes:
+            if len(self.header) != len(self.dtypes):
+                raise Exception('Number of headers must match number of dtypes')
+
     def simple_cleanup(self, field):
         '''
         Method to replace spaces with underscores, pound signs

@@ -1,12 +1,26 @@
-## W-Drive Extractor (wextractor)
+# W-Drive Extractor (wextractor)
 
 The W-Drive Extractor (or the wextractor), named after the home of the shared list of contracts in the City of Pittsburgh, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
 
-Current status: in development
+Current status: `alpha in development`
+
+## Using the W-Drive-Extractor
 
 ### Getting Started
 
-W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a virtualenv to manage these.
+W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a [virtualenv](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md) to manage these.
+
+The W-Drive-Extractor is an object-oriented application. In order to use it, you must first *extract* data from its original source using an `Extractor`'s `extract` method (the `ExcelExtractor` is currently the only supported example). Once the data is extracted, it can then be *loaded* back into some other datasource using a `Loader`'s `load` method. (only `PostgresLoader` has been implemented thus far). For a more detailed example on how this works, check out the sample usage at the bottom of this file.
+
+##### TODO Features:
+
++ Add cli support
++ Change `loader` and `extractor` methods to use kwargs
++ Add better exception messaging for the `load` and `extract` methods
+
+## Developing W-Drive-Extractor
+
+To get started with development, see the getting started section above.
 
 ### Extractors
 
@@ -20,6 +34,7 @@ The Extractor base class is an interface for implementing data extraction from d
 
 + Textfile (.csv/.txt)
 + Postgres
++ MS Access
 
 ### Loaders
 
@@ -37,14 +52,6 @@ The Loader base class is an interface for implementing data loading into new sou
 ##### TODO Features:
 
 + Add tests
-
-### Tests
-
-Tests are located in the `test` directory. To run the tests, run
-
-    PYTHONPATH=. nosetests test/
-
-from inside the root directory.
 
 ### Tests
 
