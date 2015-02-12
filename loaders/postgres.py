@@ -285,14 +285,14 @@ class PostgresLoader(Loader):
             tables = self.transform_to_schema(data, add_pkey)
 
             for ix, table in enumerate(self.schema):
-                table['columns'] = ( (table['table_name'] + '_id', 'UUID'), ) + table['columns']
+                table['columns'] = ( (table['table_name'] + '_id', 'VARCHAR(32)'), ) + table['columns']
 
                 if add_pkey:
                     table['pkey'] = table['table_name'] + '_id'
 
                 if table['from_relations']:
                     for relationship in table['from_relations']:
-                        table['columns'] += ( ( relationship + '_id', 'UUID' ), )
+                        table['columns'] += ( ( relationship + '_id', 'VARCHAR(32)' ), )
 
                 drop_table = self.generate_drop_table_query(table)
                 cursor.execute(drop_table)
