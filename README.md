@@ -46,6 +46,14 @@ Tests are located in the `test` directory. To run the tests, run
 
 from inside the root directory.
 
+### Tests
+
+Tests are located in the `test` directory. To run the tests, run
+
+    PYTHONPATH=. nosetests test/
+
+from inside the root directory.
+
 ### Sample Usage
 
 Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/) with defined relationships. NOTE: This implementation is still fragile and likely to be dependent on the fact that to_relations is the last table in the list below.
