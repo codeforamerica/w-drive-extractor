@@ -33,7 +33,7 @@ class TestPostgresLoader(unittest.TestCase):
         Tests that the drop query is created properly
         '''
         drop_table_query = self.loader.generate_drop_table_query(self.table_schema)
-        self.assertEquals(drop_table_query, 'DROP TABLE IF EXISTS test')
+        self.assertEquals(drop_table_query, 'DROP TABLE IF EXISTS test CASCADE')
 
     def test_generate_table_schema(self):
         '''

@@ -35,13 +35,21 @@ class PostgresLoader(Loader):
         return conn
 
     def generate_drop_table_query(self, table_schema):
-        drop_query = '''DROP TABLE IF EXISTS {table}'''.format(
+        '''
+        Generates a cascanding drop table query that will drop
+        all tables and their relations
+        '''
+        drop_query = '''DROP TABLE IF EXISTS {table} CASCADE'''.format(
             table=table_schema['table_name']
         )
 
         return drop_query
 
     def generate_create_table_query(self, table_schema):
+        '''
+        Geneates a create table query and raises exceptions
+        if the table schema generation is malformed
+        '''
         if table_schema.get('pkey', None) is None:
             raise Exception('Tables must have primary keys')
         elif table_schema.get('columns', None) is None:
@@ -228,7 +236,10 @@ class PostgresLoader(Loader):
                         continue
 
                 row_id = self.hash_row(new_row)
-                new_row[table['table_name'] + '_id'] = row_id
+                if add_pkey or table.get('pkey', None) is None:
+                    new_row[table['table_name'] + '_id'] = row_id
+                else:
+                    new_row[table['pkey']] = row_id
 
                 # once we have added all of the data fields, add the relationships
                 for relationship in table.get('to_relations', []):
@@ -273,7 +284,16 @@ class PostgresLoader(Loader):
 
         return tmp_file, ['row_id'] + sorted(data[0].keys())
 
-    def load(self, data, add_pkey):
+    def load(self, data, add_pkey=True):
+        '''
+        Main method for final Postgres loading.
+
+        Takes in data and a flag for adding a primary key and
+        transforms the input data to the proper schema, generates
+        relationships, does simple deduplcation on exact matches,
+        writes a tempfile with all of the data, boots up a
+         connection to Postgres, and loads everything in
+        '''
         conn = None
 
         try:
@@ -288,7 +308,7 @@ class PostgresLoader(Loader):
             for ix, table in enumerate(self.schema):
                 table['columns'] = ( (table['table_name'] + '_id', 'VARCHAR(32)'), ) + table['columns']
 
-                if add_pkey:
+                if add_pkey or table.get('pkey', None) is None:
                     table['pkey'] = table['table_name'] + '_id'
 
                 if table.get('from_relations', None):

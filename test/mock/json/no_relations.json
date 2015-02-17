@@ -1,0 +1,6 @@
+[
+    { "foo": "test1", "bar": "test2" },
+    { "foo": "test10", "bar": "test20" },
+    { "foo": "test100", "bar": "test200" },
+    { "foo": "test1", "bar": "test2" }
+]
