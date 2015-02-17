@@ -114,7 +114,7 @@ class PostgresLoader(Loader):
         checker, output, pkey, fkey = {}, [], {}, {}
 
         pkey_name = self.schema[idx]['table_name'] + '_id'
-        fkeys_name = [i + '_id' for i in self.schema[idx]['from_relations']]
+        fkeys_name = [i + '_id' for i in self.schema[idx].get('from_relations', [])]
 
         for row in table:
             # store the value of the primary key
@@ -252,6 +252,10 @@ class PostgresLoader(Loader):
         '''
 
         tmp_file = tempfile.TemporaryFile(dir=os.getcwd())
+
+        if len(data) == 0:
+            return tmp_file, None
+
         n = 0
 
         for row in data:
@@ -287,7 +291,7 @@ class PostgresLoader(Loader):
                 if add_pkey:
                     table['pkey'] = table['table_name'] + '_id'
 
-                if table['from_relations']:
+                if table.get('from_relations', None):
                     for relationship in table['from_relations']:
                         table['columns'] += ( ( relationship + '_id', 'VARCHAR(32)' ), )
 
@@ -301,7 +305,7 @@ class PostgresLoader(Loader):
                 cursor.copy_from(tmp_file, table['table_name'], null='NULL', sep='\t', columns=column_names)
 
             for table in self.schema:
-                for ix, relationship in enumerate(table['from_relations']):
+                for ix, relationship in enumerate(table.get('from_relations', [])):
                     fk_query = self.generate_foreign_key_query(table, ix)
                     cursor.execute(fk_query)
 
