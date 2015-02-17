@@ -31,13 +31,13 @@ class TestExcelExtractor(unittest.TestCase):
         for row in self.data:
             if row['date_col'] is not None:
                 # dates should be dates or None
-                self.assertIsInstance(row['date_col'], datetime.datetime)
+                self.assertTrue(isinstance(row['date_col'], datetime.datetime))
             if row['number_col'] is not None:
-                self.assertIsInstance(row['number_col'], int)
+                self.assertTrue(isinstance(row['number_col'], int))
             if row['str_col'] is not None:
-                self.assertIsInstance(row['str_col'], unicode)
+                self.assertTrue((row['str_col'], unicode))
             if row['bool_col'] is not None:
-                self.assertIsInstance(row['bool_col'], bool)
+                self.assertTrue((row['bool_col'], bool))
 
     def test_drop_incorrect_types(self):
         '''
@@ -62,8 +62,8 @@ class TestExcelExtractor(unittest.TestCase):
         '''
         Tests that the column has been properly renamed
         '''
-        self.assertIn('number_col', self.data[0].keys())
-        self.assertIn('bool_col', self.data[0].keys())
+        self.assertTrue('number_col' in self.data[0].keys())
+        self.assertTrue('bool_col' in self.data[0].keys())
 
 if __name__ == '__main__':
     unittest.main()
