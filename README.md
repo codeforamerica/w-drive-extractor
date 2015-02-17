@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/codeforamerica/w-drive-extractor.svg?branch=master)](https://travis-ci.org/codeforamerica/w-drive-extractor)
+
 # W-Drive Extractor (wextractor)
 
 The W-Drive Extractor (or the wextractor), named after the home of the shared list of contracts in the City of Pittsburgh, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
