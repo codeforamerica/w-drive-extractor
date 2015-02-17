@@ -59,7 +59,9 @@ Tests are located in the `test` directory. To run the tests, run
 
     PYTHONPATH=. nosetests test/
 
-from inside the root directory.
+from inside the root directory. For more coverage information, run
+
+    PYTHONPATH=. nosetests test/ -vs --with-coverage --cover-package=wextractor --cover-erase
 
 ### Sample Usage
 

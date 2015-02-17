@@ -38,7 +38,10 @@ class ExcelExtractor(Extractor):
             if type(converted_val) != self.dtypes[idx]:
                 try:
                     # for native types, try converting
-                    converted_val = self.dtypes[idx](converted_val)
+                    if self.dtypes[idx] == bool:
+                        converted_val = None
+                    else:
+                        converted_val = self.dtypes[idx](converted_val)
                 except TypeError:
                     # e.g. you are attempting to load a complex type
                     converted_val = None
