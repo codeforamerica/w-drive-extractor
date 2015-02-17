@@ -42,10 +42,13 @@ class PostgresLoader(Loader):
         return drop_query
 
     def generate_create_table_query(self, table_schema):
-        if not table_schema['pkey']:
+        if table_schema.get('pkey', None) is None:
             raise Exception('Tables must have primary keys')
-
-        if len(table_schema['columns'][0]) == 1:
+        elif table_schema.get('columns', None) is None:
+            raise Exception('Tables must contain columns')
+        elif not isinstance(table_schema['columns'][0], tuple):
+            raise Exception('Table columns must be tuples')
+        elif len(table_schema['columns'][0]) == 1:
             raise Exception('Column Types are not specified')
         elif len(table_schema['columns'][0]) == 2:
             coldefs = 'row_id SERIAL,'
