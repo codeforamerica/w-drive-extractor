@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-class Extractor:
+class Extractor(object):
     def __init__(self, target, header=None, dtypes=None):
         '''
         Initializes a new Extractor. Extractors pull data
