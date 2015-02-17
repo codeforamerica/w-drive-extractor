@@ -231,7 +231,7 @@ class PostgresLoader(Loader):
                 new_row[table['table_name'] + '_id'] = row_id
 
                 # once we have added all of the data fields, add the relationships
-                for relationship in table['to_relations']:
+                for relationship in table.get('to_relations', []):
                     # find the index of the matching relationship table
                     rel_index = next(index for (index, d) in enumerate(self.schema) if d['table_name'] == relationship)
                     output[rel_index][ix][self.schema[table_idx]['table_name'] + '_id'] = row_id

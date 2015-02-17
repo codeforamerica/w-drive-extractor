@@ -76,3 +76,21 @@ class TestPostgresLoader(unittest.TestCase):
         self.loader_with_tables.load([], True)
 
         assert self.loader.connect.called
+
+    def test_null_replace(self):
+        '''
+        Tests to make sure that nulls are properly replaced
+        '''
+        self.assertEquals(self.loader.null_replace(''), 'NULL')
+        self.assertEquals(self.loader.null_replace(u''), 'NULL')
+        self.assertEquals(self.loader.null_replace(None), 'NULL')
+
+    @patch('wextractor.loaders.postgres.PostgresLoader.connect')
+    def test_md5_hash(self, PostgresLoader):
+        '''
+        Tests to make sure the md5 hash is working properly
+        '''
+        self.loader_with_tables.hash_row = Mock(return_value='foo')
+        self.loader_with_tables.load([{'id': 1}], True)
+
+        assert self.loader_with_tables.hash_row.called
