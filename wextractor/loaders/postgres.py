@@ -12,6 +12,20 @@ from collections import defaultdict
 from wextractor.loaders.loader import Loader
 
 class PostgresLoader(Loader):
+    def __init__(self, connection_params, schema=None):
+        super(PostgresLoader, self).__init__(connection_params, schema)
+
+        if self.schema is None:
+            self.schema = []
+
+        for table_schema in self.schema:
+            if table_schema.get('columns', None) is None:
+                raise Exception('Tables must contain columns')
+            elif not isinstance(table_schema['columns'][0], tuple):
+                raise Exception('Table columns must be tuples')
+            elif len(table_schema['columns'][0]) == 1:
+                raise Exception('Column Types are not specified')
+
     def connect(self):
         '''
         The connect method implements the logic behind
@@ -50,15 +64,7 @@ class PostgresLoader(Loader):
         Geneates a create table query and raises exceptions
         if the table schema generation is malformed
         '''
-        if table_schema.get('pkey', None) is None:
-            raise Exception('Tables must have primary keys')
-        elif table_schema.get('columns', None) is None:
-            raise Exception('Tables must contain columns')
-        elif not isinstance(table_schema['columns'][0], tuple):
-            raise Exception('Table columns must be tuples')
-        elif len(table_schema['columns'][0]) == 1:
-            raise Exception('Column Types are not specified')
-        elif len(table_schema['columns'][0]) == 2:
+        if len(table_schema['columns'][0]) == 2:
             coldefs = 'row_id SERIAL,'
 
             coldefs += ','.join(
