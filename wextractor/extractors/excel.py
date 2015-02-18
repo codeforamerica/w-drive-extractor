@@ -91,7 +91,7 @@ class ExcelExtractor(Extractor):
                     )
                 else:
                     formatted_row = dict(zip(
-                        self.header, [cell.value for cell in row]
+                        current_header, [cell.value for cell in current_sheet.row(current_row)]
                     ))
 
                 output.append(formatted_row)

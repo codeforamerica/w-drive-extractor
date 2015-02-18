@@ -21,8 +21,8 @@ class TestExcelExtractor(unittest.TestCase):
          {u'date_col': datetime.datetime(2014, 1, 1, 0, 0), u'number_col': 2, u'str_col': u'bar', 'bool_col': False},
          {u'date_col': None, u'number_col': None, u'str_col': u'baz', 'bool_col': None}]
         '''
-        self.Extractor = ExcelExtractor('./test/mock/excel/excel.xlsx', dtypes=[int, unicode, datetime.datetime, bool])
-        self.data = self.Extractor.extract()
+        self.extractor = ExcelExtractor('./test/mock/excel/excel.xlsx', dtypes=[int, unicode, datetime.datetime, bool])
+        self.data = self.extractor.extract()
 
     def test_convert_to_python_types(self):
         '''
@@ -64,6 +64,31 @@ class TestExcelExtractor(unittest.TestCase):
         '''
         self.assertTrue('number_col' in self.data[0].keys())
         self.assertTrue('bool_col' in self.data[0].keys())
+
+    def test_working_column_headers(self):
+        '''
+        Tests that you can specify custom column headers
+        '''
+        headers = ['dt', 'num', 'bool', 'str']
+        extractor = ExcelExtractor(
+            './test/mock/excel/excel.xlsx', 
+            header=headers,
+            dtypes=[int, unicode, datetime.datetime, bool])
+        data = extractor.extract()
+        for row in data:
+            self.assertEquals(
+                sorted(headers), sorted(row.keys())
+            )
+
+    def test_no_dtypes(self):
+        '''
+        Tests that you still get the proper output without dtypes
+        '''
+        extractor = ExcelExtractor(
+            './test/mock/excel/excel.xlsx'
+        )
+        data = extractor.extract()
+
 
 if __name__ == '__main__':
     unittest.main()
