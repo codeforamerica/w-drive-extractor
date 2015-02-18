@@ -19,7 +19,7 @@ class TestPostgresLoader(unittest.TestCase):
             'table_name': 'test', 'columns': (('id', 'INTEGER'),)
         }
         self.table_schema_cols_not_tuple = {
-            'table_name': 'test', 'pkey': 'id', 'columns': (('id'),)
+            'table_name': 'test', 'pkey': 'id', 'columns': (('id'))
         }
         self.table_schema_no_col_types = {
             'table_name': 'test', 'pkey': 'id', 'columns': (('id',),)
@@ -49,10 +49,10 @@ class TestPostgresLoader(unittest.TestCase):
         '''
         Tests that having no pkey raises an Exception
         '''
-        self.assertRaises(Exception, self.loader.generate_create_table_query, self.table_schema_no_pkey)
-        self.assertRaises(Exception, self.loader.generate_create_table_query, self.table_schema_no_cols)
-        self.assertRaises(Exception, self.loader.generate_create_table_query, self.table_schema_cols_not_tuple)
-        self.assertRaises(Exception, self.loader.generate_create_table_query, self.table_schema_no_col_types)
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_no_pkey))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_no_cols))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_cols_not_tuple))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_no_col_types))
 
     @patch('psycopg2.connect')
     def test_connect_method(self, connect):
