@@ -11,6 +11,9 @@ except ImportError:
     print("warning: pypandoc module not found, could not convert Markdown to RST")
     long_description = ''
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
     name='wextractor',
     url='https://github.com/codeforamerica/w-drive-extractor',
@@ -22,11 +25,8 @@ setup(
     description='Extract flat data and load it as relational data',
     long_description=long_description,
 
-    packages=find_packages(exclude=['test*']),
-    install_requires=[
-        'psycopg2>=2.5.0',
-        'xlrd>=0.9.3'
-    ],
+    packages=find_packages(),
+    install_requires=required,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 2',
