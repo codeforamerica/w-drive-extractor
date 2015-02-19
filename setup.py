@@ -11,7 +11,7 @@ except ImportError:
     print("warning: pypandoc module not found, could not convert Markdown to RST")
     long_description = ''
 
-with open('requirements.txt') as f:
+with open('requirements/pkg.txt') as f:
     required = f.read().splitlines()
 
 setup(
