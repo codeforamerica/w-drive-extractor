@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from wextractor.extractors.excel import ExcelExtractor
+from wextractor.extractors import ExcelExtractor
 from nose.tools import raises
 
 class TestExcelExtractor(unittest.TestCase):
@@ -88,7 +88,12 @@ class TestExcelExtractor(unittest.TestCase):
             './test/mock/excel/excel.xlsx'
         )
         data = extractor.extract()
-
+        self.assertEquals(len(data), 3)
+        for row in data:
+            self.assertEquals(
+                sorted(row.keys()),
+                ['bool_col', 'date_col', 'number_col', 'str_col']
+            )
 
 if __name__ == '__main__':
     unittest.main()
