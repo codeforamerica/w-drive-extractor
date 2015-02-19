@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -23,7 +22,7 @@ setup(
     description='Extract flat data and load it as relational data',
     long_description=long_description,
 
-    packages=['wextractor'],
+    packages=find_packages(exclude=['test*']),
     install_requires=[
         'psycopg2>=2.5.0',
         'xlrd>=0.9.3'
