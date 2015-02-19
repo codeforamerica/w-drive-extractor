@@ -28,6 +28,13 @@ class TestPostgresLoader(unittest.TestCase):
             'table_name': 'test', 'pkey': 'id'
         }
 
+    def test_init_postgres_failures(self):
+        '''Tests that having no pkey raises an Exception'''
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_no_cols))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_cols_not_tuple))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_no_col_types))
+        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_no_pkey))
+
     def test_generate_drop_table_query(self):
         '''
         Tests that the drop query is created properly
@@ -45,14 +52,14 @@ class TestPostgresLoader(unittest.TestCase):
             'CREATE TABLE IF NOT EXISTS test (row_id SERIAL,id INTEGER, PRIMARY KEY(id))'
         )
 
-    def test_create_table_failures(self):
+    def test_generate_alter_table_query(self):
         '''
-        Tests that having no pkey raises an Exception
+        Tests that the alter query is created properly
         '''
-        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'}, self.table_schema_no_pkey))
-        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_no_cols))
-        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_cols_not_tuple))
-        self.assertRaises(Exception, PostgresLoader.__init__, ({'database': 'dummy_db', 'user': 'dummy_user'},  self.table_schema_no_col_types))
+        self.assertTrue(
+            self.loader.generate_foreign_key_query(self.table_schema) is None
+        )
+
 
     @patch('psycopg2.connect')
     def test_connect_method(self, connect):

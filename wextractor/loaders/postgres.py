@@ -89,6 +89,8 @@ class PostgresLoader(Loader):
         NOTE: This must be called AFTER data is already
         loaded. Otherwise, a psycopg2 error will be thrown.
         '''
+        if table.get('from_relations', None) is None:
+            return
         return '''ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}'''.format(
             table=table['table_name'],
             id=table['from_relations'][i] + '_id',

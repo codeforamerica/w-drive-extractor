@@ -22,7 +22,7 @@ class TestPostgresLoaderNoRelationships(unittest.TestCase):
 
     def test_simple_dedupe(self):
         '''
-        Test to make sure that the duplicate rows are knocked out
+        Tests to make sure that the duplicate rows are knocked out
         '''
         self.assertEquals(len(self.data), 4)
         self.assertEquals(len(self.loader.transform_to_schema(self.data, True)[0]), 3)
@@ -32,7 +32,7 @@ class TestPostgresLoaderNoRelationships(unittest.TestCase):
 
     def test_transform_to_proper_schema(self):
         '''
-        Test to make sure that the schema is transformed properly
+        Tests to make sure that the schema is transformed properly
         '''
         self.assertEquals(
             sorted(self.loader.transform_to_schema(self.data, True)[0][0].keys()),
