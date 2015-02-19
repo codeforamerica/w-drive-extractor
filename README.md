@@ -1,12 +1,28 @@
-## W-Drive Extractor
+[![Build Status](https://travis-ci.org/codeforamerica/w-drive-extractor.svg?branch=master)](https://travis-ci.org/codeforamerica/w-drive-extractor)
 
-The W-Drive Extractor, named after the home of the shared list of contracts, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
+# W-Drive Extractor (wextractor)
 
-Current status: in development
+The W-Drive Extractor (or the wextractor), named after the home of the shared list of contracts in the City of Pittsburgh, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
+
+Current status: `alpha in development`
+
+## Using the W-Drive-Extractor
 
 ### Getting Started
 
-W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a virtualenv to manage these.
+W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a [virtualenv](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md) to manage these.
+
+The W-Drive-Extractor is an object-oriented application. In order to use it, you must first *extract* data from its original source using an `Extractor`'s `extract` method (the `ExcelExtractor` is currently the only supported example). Once the data is extracted, it can then be *loaded* back into some other datasource using a `Loader`'s `load` method. (only `PostgresLoader` has been implemented thus far). For a more detailed example on how this works, check out the sample usage at the bottom of this file.
+
+##### TODO Features:
+
++ Add cli support
++ Change `loader` and `extractor` methods to use kwargs
++ Add better exception messaging for the `load` and `extract` methods
+
+## Developing W-Drive-Extractor
+
+To get started with development, see the getting started section above.
 
 ### Extractors
 
@@ -20,6 +36,7 @@ The Extractor base class is an interface for implementing data extraction from d
 
 + Textfile (.csv/.txt)
 + Postgres
++ MS Access
 
 ### Loaders
 
@@ -38,14 +55,24 @@ The Loader base class is an interface for implementing data loading into new sou
 
 + Add tests
 
+### Tests
+
+Tests are located in the `test` directory. To run the tests, run
+
+    PYTHONPATH=. nosetests test/
+
+from inside the root directory. For more coverage information, run
+
+    PYTHONPATH=. nosetests test/ -vs --with-coverage --cover-package=wextractor --cover-erase
+
 ### Sample Usage
 
 Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/) with defined relationships. NOTE: This implementation is still fragile and likely to be dependent on the fact that to_relations is the last table in the list below.
 
     import datetime
 
-    from extractors.excel import ExcelExtractor
-    from loaders.postgres import PostgresLoader
+    from wextractor.extractors.excel import ExcelExtractor
+    from wextractor.loaders.postgres import PostgresLoader
 
     one_sheet = ExcelExtractor(
         'files/one sheet contract list.xlsx',

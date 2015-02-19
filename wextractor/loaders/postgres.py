@@ -9,9 +9,23 @@ from copy import deepcopy
 
 from collections import defaultdict
 
-from loaders.loader import Loader
+from wextractor.loaders.loader import Loader
 
 class PostgresLoader(Loader):
+    def __init__(self, connection_params, schema=None):
+        super(PostgresLoader, self).__init__(connection_params, schema)
+
+        if self.schema is None:
+            self.schema = []
+
+        for table_schema in self.schema:
+            if table_schema.get('columns', None) is None:
+                raise Exception('Tables must contain columns')
+            elif not isinstance(table_schema['columns'][0], tuple):
+                raise Exception('Table columns must be tuples')
+            elif len(table_schema['columns'][0]) == 1:
+                raise Exception('Column Types are not specified')
+
     def connect(self):
         '''
         The connect method implements the logic behind
@@ -35,30 +49,29 @@ class PostgresLoader(Loader):
         return conn
 
     def generate_drop_table_query(self, table_schema):
-        drop_query = '''
-        DROP TABLE IF EXISTS {table} CASCADE
-        '''.format(
+        '''
+        Generates a cascanding drop table query that will drop
+        all tables and their relations
+        '''
+        drop_query = '''DROP TABLE IF EXISTS {table} CASCADE'''.format(
             table=table_schema['table_name']
         )
 
         return drop_query
 
     def generate_create_table_query(self, table_schema):
-        if not table_schema['pkey']:
-            raise Exception('Tables must have primary keys')
-
-        if len(table_schema['columns'][0]) == 1:
-            raise Exception('Column Types are not specified')
-        elif len(table_schema['columns'][0]) == 2:
+        '''
+        Geneates a create table query and raises exceptions
+        if the table schema generation is malformed
+        '''
+        if len(table_schema['columns'][0]) == 2:
             coldefs = 'row_id SERIAL,'
 
             coldefs += ','.join(
                     '{name} {dtype}'.format(name=name, dtype=dtype) for name, dtype in table_schema['columns']
                 )
 
-            create_query = '''
-            CREATE TABLE IF NOT EXISTS {table} ({coldefs}, PRIMARY KEY({pkey}))
-            '''.format(
+            create_query = '''CREATE TABLE IF NOT EXISTS {table} ({coldefs}, PRIMARY KEY({pkey}))'''.format(
                 table=table_schema['table_name'],
                 coldefs=coldefs,
                 pkey=table_schema['pkey']
@@ -76,9 +89,9 @@ class PostgresLoader(Loader):
         NOTE: This must be called AFTER data is already
         loaded. Otherwise, a psycopg2 error will be thrown.
         '''
-        return '''
-        ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}
-        '''.format(
+        if table.get('from_relations', None) is None:
+            return
+        return '''ALTER TABLE {table} ADD FOREIGN KEY ({id}) REFERENCES {relationship}'''.format(
             table=table['table_name'],
             id=table['from_relations'][i] + '_id',
             relationship=table['from_relations'][i]
@@ -117,7 +130,7 @@ class PostgresLoader(Loader):
         checker, output, pkey, fkey = {}, [], {}, {}
 
         pkey_name = self.schema[idx]['table_name'] + '_id'
-        fkeys_name = [i + '_id' for i in self.schema[idx]['from_relations']]
+        fkeys_name = [i + '_id' for i in self.schema[idx].get('from_relations', [])]
 
         for row in table:
             # store the value of the primary key
@@ -231,10 +244,13 @@ class PostgresLoader(Loader):
                         continue
 
                 row_id = self.hash_row(new_row)
-                new_row[table['table_name'] + '_id'] = row_id
+                if add_pkey or table.get('pkey', None) is None:
+                    new_row[table['table_name'] + '_id'] = row_id
+                else:
+                    new_row[table['pkey']] = row_id
 
                 # once we have added all of the data fields, add the relationships
-                for relationship in table['to_relations']:
+                for relationship in table.get('to_relations', []):
                     # find the index of the matching relationship table
                     rel_index = next(index for (index, d) in enumerate(self.schema) if d['table_name'] == relationship)
                     output[rel_index][ix][self.schema[table_idx]['table_name'] + '_id'] = row_id
@@ -255,6 +271,10 @@ class PostgresLoader(Loader):
         '''
 
         tmp_file = tempfile.TemporaryFile(dir=os.getcwd())
+
+        if len(data) == 0:
+            return tmp_file, None
+
         n = 0
 
         for row in data:
@@ -272,7 +292,16 @@ class PostgresLoader(Loader):
 
         return tmp_file, ['row_id'] + sorted(data[0].keys())
 
-    def load(self, data, add_pkey):
+    def load(self, data, add_pkey=True):
+        '''
+        Main method for final Postgres loading.
+
+        Takes in data and a flag for adding a primary key and
+        transforms the input data to the proper schema, generates
+        relationships, does simple deduplcation on exact matches,
+        writes a tempfile with all of the data, boots up a
+         connection to Postgres, and loads everything in
+        '''
         conn = None
 
         try:
@@ -287,10 +316,10 @@ class PostgresLoader(Loader):
             for ix, table in enumerate(self.schema):
                 table['columns'] = ( (table['table_name'] + '_id', 'VARCHAR(32)'), ) + table['columns']
 
-                if add_pkey:
+                if add_pkey or table.get('pkey', None) is None:
                     table['pkey'] = table['table_name'] + '_id'
 
-                if table['from_relations']:
+                if table.get('from_relations', None):
                     for relationship in table['from_relations']:
                         table['columns'] += ( ( relationship + '_id', 'VARCHAR(32)' ), )
 
@@ -304,7 +333,7 @@ class PostgresLoader(Loader):
                 cursor.copy_from(tmp_file, table['table_name'], null='NULL', sep='\t', columns=column_names)
 
             for table in self.schema:
-                for ix, relationship in enumerate(table['from_relations']):
+                for ix, relationship in enumerate(table.get('from_relations', [])):
                     fk_query = self.generate_foreign_key_query(table, ix)
                     cursor.execute(fk_query)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-class Loader:
+class Loader(object):
     def __init__(self, connection_params, schema=None):
         '''
         Initializes a new Loader. Loaders take a

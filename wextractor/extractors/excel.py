@@ -2,7 +2,7 @@
 
 import datetime
 import xlrd
-from extractors.extractor import Extractor
+from wextractor.extractors.extractor import Extractor
 
 class ExcelExtractor(Extractor):
     def convert_to_python_types(self, row, header, excel_date):
@@ -38,7 +38,10 @@ class ExcelExtractor(Extractor):
             if type(converted_val) != self.dtypes[idx]:
                 try:
                     # for native types, try converting
-                    converted_val = self.dtypes[idx](converted_val)
+                    if self.dtypes[idx] == bool:
+                        converted_val = None
+                    else:
+                        converted_val = self.dtypes[idx](converted_val)
                 except TypeError:
                     # e.g. you are attempting to load a complex type
                     converted_val = None
@@ -82,9 +85,16 @@ class ExcelExtractor(Extractor):
                 current_header = self.header
 
             while current_row < current_sheet.nrows:
-                output.append(
-                    self.convert_to_python_types(current_sheet.row(current_row), current_header, workbook.datemode)
-                )
+                if self.dtypes:
+                    formatted_row = self.convert_to_python_types(
+                        current_sheet.row(current_row), current_header, workbook.datemode
+                    )
+                else:
+                    formatted_row = dict(zip(
+                        current_header, [cell.value for cell in current_sheet.row(current_row)]
+                    ))
+
+                output.append(formatted_row)
 
                 current_row += 1
 
