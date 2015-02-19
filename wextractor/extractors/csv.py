@@ -2,6 +2,8 @@
 
 import datetime
 import urllib2
+import httplib
+import urlparse
 
 from wextractor.extractors.extractor import Extractor
 
@@ -15,14 +17,30 @@ class CsvExtractor(Extractor):
         super(CsvExtractor, self).__init__(target, header, dtypes)
 
         if url is None:
-            self.url = self.auto_detect_url(target)
+            self.url = self.detect_url(target)
         elif type(url) != bool:
             raise TypeError('url kwarg must be of type bool')
         else:
             self.url = url
 
-    def auto_detect_url(self, target):
-        return False
+    def detect_url(target):
+        # see: http://stackoverflow.com/questions/2924422/how-do-i-determine-if-a-web-page-exists-with-shell-scripting
+        # and http://stackoverflow.com/questions/1140661/python-get-http-response-code-from-a-url
+        # for additional information
+        good_codes = [httplib.OK, httplib.FOUND, httplib.MOVED_PERMANENTLY]
+        # check to see if we have a scheme in the url, and append one if not
+        parsed_target = urlparse(target)
+        if bool(parsed_target.scheme) is False:
+            target = 'http://' + target
+        host, path = urlparse(target)[1:3]
+        try:
+            conn = httplib.HTTPConnection(host)
+            conn.request("HEAD", path)
+            status = conn.getresponse().status
+        except StandardError:
+            status = None
+
+        return status in good_codes
 
     def extract(self):
         if self.url:
@@ -37,6 +55,7 @@ class CsvExtractor(Extractor):
         if not self.header:
             # use first line if self.header not defined
             current_headers = raw_data.split('\n')[0].split(',')
+            raw_data = raw_data[1:]
         else:
             current_headers = self.header
 
