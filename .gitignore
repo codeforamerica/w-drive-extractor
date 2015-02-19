@@ -1,6 +1,10 @@
 *.pyc
 .DS_Store
+*.egg-info
 
 files/
 
 .coverage
+
+build/
+dist/

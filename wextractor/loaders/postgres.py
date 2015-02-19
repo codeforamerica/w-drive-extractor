@@ -3,7 +3,7 @@
 import os
 import tempfile
 import psycopg2
-import simplejson as json
+import json
 from hashlib import md5
 from copy import deepcopy
 
