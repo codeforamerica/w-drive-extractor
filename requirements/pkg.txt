@@ -1,2 +1,2 @@
-psycopg2==2.5.4
-xlrd==0.9.3
+psycopg2>=2.5.0
+xlrd>=0.9.3
