@@ -31,10 +31,11 @@ The Extractor base class is an interface for implementing data extraction from d
 ##### Current Implementations:
 
 + Excel (.xls, .xlsx)
++ Comma-Separated Values (.csv)
 
 ##### TODO implementations:
 
-+ Textfile (.csv/.txt)
++ Generic Text Files (.txt)
 + Postgres
 + MS Access
 
@@ -50,10 +51,6 @@ The Loader base class is an interface for implementing data loading into new sou
 
 + Simple key/value cache (Memcached/Redis)
 + Other relational data stores
-
-##### TODO Features:
-
-+ Add tests
 
 ### Tests
 
@@ -71,8 +68,8 @@ Below is an example of extracting data from Excel and loading it into a local [p
 
     import datetime
 
-    from wextractor.extractors.excel import ExcelExtractor
-    from wextractor.loaders.postgres import PostgresLoader
+    from wextractor.extractors import ExcelExtractor
+    from wextractor.loaders import PostgresLoader
 
     one_sheet = ExcelExtractor(
         'files/one sheet contract list.xlsx',
