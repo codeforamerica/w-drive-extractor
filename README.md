@@ -4,15 +4,27 @@
 
 The W-Drive Extractor (or the wextractor), named after the home of the shared list of contracts in the City of Pittsburgh, is an attempt to extract and standardize data from spreadsheets, .csvs, and other files for a relational destination.
 
-Current status: `alpha in development`
-
 ## Using the W-Drive-Extractor
 
 ### Getting Started
 
-W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a [virtualenv](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md) to manage these.
+#### Installation
 
-The W-Drive-Extractor is an object-oriented application. In order to use it, you must first *extract* data from its original source using an `Extractor`'s `extract` method (the `ExcelExtractor` is currently the only supported example). Once the data is extracted, it can then be *loaded* back into some other datasource using a `Loader`'s `load` method. (only `PostgresLoader` has been implemented thus far). For a more detailed example on how this works, check out the sample usage at the bottom of this file.
+W-Drive Extractor is available as a pre-release package via pypi. You can install via pip:
+
+    pip install wextractor --pre
+
+#### Usage
+
+Here's a simple example of extracting data from the Pittsburgh Police blotter:
+
+    >>> from wextractor.extractors import CsvExtractor
+    >>> extractor = CsvExtractor('http://apps.pittsburghpa.gov/police/arrest_blotter/arrest_blotter_Monday.csv')
+    >>> data = extractor.extract()
+    >>> print data
+    >>> [{u'NEIGHBORHOOD': u'Spring Garden', u'DESCRIPTION': u'Flight to Avoid Apprehension  Tri...
+
+For a more complex example of usage, please see the bottom of this file.
 
 ##### TODO Features:
 
@@ -22,7 +34,11 @@ The W-Drive-Extractor is an object-oriented application. In order to use it, you
 
 ## Developing W-Drive-Extractor
 
-To get started with development, see the getting started section above.
+### Getting Started
+
+W-Drive Extractor has some external dependencies, which can be installed via pip. It is recommended that you use a [virtualenv](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md) to manage these.
+
+The W-Drive-Extractor is an object-oriented application. In order to use it, you must first *extract* data from its original source using an `Extractor`'s `extract` method (the `ExcelExtractor` is currently the only supported example). Once the data is extracted, it can then be *loaded* back into some other datasource using a `Loader`'s `load` method. (only `PostgresLoader` has been implemented thus far). For a more detailed example on how this works, check out the sample usage at the bottom of this file.
 
 ### Extractors
 
@@ -62,7 +78,7 @@ from inside the root directory. For more coverage information, run
 
     PYTHONPATH=. nosetests test/ -vs --with-coverage --cover-package=wextractor --cover-erase
 
-### Sample Usage
+### Detailed Sample Usage
 
 Below is an example of extracting data from Excel and loading it into a local [postgres database](http://postgresapp.com/) with defined relationships. NOTE: This implementation is still fragile and likely to be dependent on the fact that to_relations is the last table in the list below.
 
