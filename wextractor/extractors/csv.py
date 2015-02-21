@@ -62,8 +62,9 @@ class CsvExtractor(Extractor):
         output = []
 
         for row in raw_data.split('\n'):
+            data = row.split(',')
             output.append(
-                dict(zip(current_headers, row.split(',')))
+                self.transform_row(current_headers, data)
             )
 
         return output

@@ -75,3 +75,16 @@ class TestCsvExtractor(unittest.TestCase):
                 sorted(row.keys()),
                 ['col1', 'col2', 'col3']
             )
+
+    def test_functional_transform(self):
+        '''
+        Tests that you can apply a function as a dtype
+        '''
+        def add_ten(val):
+            return int(val) + 10
+        extractor = CsvExtractor('./test/mock/csv/file.csv', url=False, dtypes=[str, int, add_ten])
+        data = extractor.extract()
+        # the baz column has ten added to it
+        initial_baz = [2, 20, 200]
+        for idx, row in enumerate(data):
+            self.assertEquals(row.get('baz'), initial_baz[idx] + 10)
