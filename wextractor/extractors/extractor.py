@@ -18,6 +18,17 @@ class Extractor(object):
             if len(self.header) != len(self.dtypes):
                 raise Exception('Number of headers must match number of dtypes')
 
+    def transform_row(self, header, row):
+        if self.dtypes is None:
+            return dict(zip(header, row))
+        else:
+            output = []
+            for idx, cell in enumerate(row):
+                output.append(
+                    self.dtypes[idx](cell)
+                )
+            return dict(zip(header, output))
+
     def simple_cleanup(self, field):
         '''
         Method to replace spaces with underscores, pound signs

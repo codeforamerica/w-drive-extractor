@@ -5,7 +5,7 @@ import xlrd
 from wextractor.extractors.extractor import Extractor
 
 class ExcelExtractor(Extractor):
-    def convert_to_python_types(self, row, header, excel_date):
+    def transform_row(self, row, header, excel_date):
         '''
         Attempts to reconcile excel data types with native
         python types. If the ExcelExtractor is initialized with
@@ -86,7 +86,7 @@ class ExcelExtractor(Extractor):
 
             while current_row < current_sheet.nrows:
                 if self.dtypes:
-                    formatted_row = self.convert_to_python_types(
+                    formatted_row = self.transform_row(
                         current_sheet.row(current_row), current_header, workbook.datemode
                     )
                 else:
