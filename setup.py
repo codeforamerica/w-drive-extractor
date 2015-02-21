@@ -18,7 +18,7 @@ setup(
     name='wextractor',
     url='https://github.com/codeforamerica/w-drive-extractor',
     license='MIT',
-    version='0.1.dev2',
+    version='0.1.dev3',
     author='Ben Smithgall',
     author_email='bsmithgall@codeforamerica.org',
 
