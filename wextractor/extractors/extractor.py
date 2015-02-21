@@ -24,8 +24,12 @@ class Extractor(object):
         else:
             output = []
             for idx, cell in enumerate(row):
+                try:
+                    converted_val = self.dtypes[idx](cell)
+                except:
+                    converted_val = None
                 output.append(
-                    self.dtypes[idx](cell)
+                    converted_val
                 )
             return dict(zip(header, output))
 
