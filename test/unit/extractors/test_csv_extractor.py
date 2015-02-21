@@ -56,7 +56,7 @@ class TestCsvExtractor(unittest.TestCase):
         Tests that the extraction yields the proper data
         '''
         data = self.extractor.extract()
-        self.assertEquals(len(data), 3)
+        self.assertEquals(len(data), 4)
         for row in data:
             self.assertEquals(
                 sorted(row.keys()),
@@ -69,7 +69,7 @@ class TestCsvExtractor(unittest.TestCase):
         '''
         extractor = CsvExtractor('./test/mock/csv/file.csv', header=['col1', 'col2', 'col3'], url=False)
         data = extractor.extract()
-        self.assertEquals(len(data), 4)
+        self.assertEquals(len(data), 5)
         for row in data:
             self.assertEquals(
                 sorted(row.keys()),
@@ -86,5 +86,5 @@ class TestCsvExtractor(unittest.TestCase):
         data = extractor.extract()
         # the baz column has ten added to it
         initial_baz = [2, 20, 200]
-        for idx, row in enumerate(data):
-            self.assertEquals(row.get('baz'), initial_baz[idx] + 10)
+        for idx, row in enumerate(initial_baz):
+            self.assertEquals(data[idx].get('baz'), row + 10)
