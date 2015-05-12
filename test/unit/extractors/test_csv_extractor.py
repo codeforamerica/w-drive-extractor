@@ -88,3 +88,15 @@ class TestCsvExtractor(unittest.TestCase):
         initial_baz = [2, 20, 200]
         for idx, row in enumerate(initial_baz):
             self.assertEquals(data[idx].get('baz'), row + 10)
+
+    def test_better_commas(self):
+        '''
+        Tests that commas in fields don't break the extractor
+        '''
+        extractor = CsvExtractor('./test/mock/csv/file_commas.csv', url=False, dtypes=[int, str, str, str])
+        data = extractor.extract()
+        self.assertEquals(len(data), 1)
+        self.assertEquals(data[0]['col1'], 1)
+        self.assertEquals(data[0]['col2'], 'hello')
+        self.assertEquals(data[0]['col3'], 'first name, last name')
+        self.assertEquals(data[0]['col4'], 'world')

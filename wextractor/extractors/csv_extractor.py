@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import datetime
 import urllib2
 import httplib
 from urlparse import urlparse
+import csv
 
 from wextractor.extractors.extractor import Extractor
 
@@ -61,10 +61,11 @@ class CsvExtractor(Extractor):
 
         output = []
 
-        for row in raw_data.split('\n'):
-            data = row.split(',')
+        reader = csv.reader(raw_data.splitlines(), delimiter=',')
+
+        for row in reader:
             output.append(
-                self.transform_row(current_headers, data)
+                self.transform_row(current_headers, row)
             )
 
         return output
